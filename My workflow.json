@@ -1,0 +1,142 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "83932a2d-b25c-40a2-bf46-f57f1d05c958",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "9622cbd9-fc90-4ed2-b9b6-af001ffe752c",
+      "name": "Webhook",
+      "webhookId": "83932a2d-b25c-40a2-bf46-f57f1d05c958"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4O-MINI"
+        },
+        "responses": {
+          "values": [
+            {
+              "role": "system",
+              "content": "You are an expert business consultant. Always respond with valid JSON only. Never add explanations outside the JSON block."
+            },
+            {
+              "content": "=You are a business analyst AI. Analyze the following customer reviews for \"{{ $('Webhook').item.json.body.business_name }}\" and generate a structured JSON report.\n\nCustomer Reviews:\n{{ $('Webhook').item.json.body.reviews.join('\\n- ') }}\n\nReturn ONLY valid JSON, no extra text:\n{\n  \"business_name\": \"...\",\n  \"overall_sentiment\": \"positive/neutral/negative\",\n  \"customer_complaints\": [\"complaint 1\", \"complaint 2\"],\n  \"customer_likes\": [\"like 1\", \"like 2\"],\n  \"business_opportunities\": [\"opportunity 1\", \"opportunity 2\"],\n  \"report\": {\n    \"business_problem\": \"2-3 sentence summary of main problems\",\n    \"growth_suggestion\": \"Specific actionable growth advice\",\n    \"marketing_idea\": \"Creative marketing idea based on what customers love\",\n    \"opportunity_detection\": \"A new revenue opportunity being missed\"\n  }\n}"
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.1,
+      "position": [
+        208,
+        0
+      ],
+      "id": "f82a8955-3b3e-4395-85f5-ec337bbd4d0c",
+      "name": "Message a model",
+      "credentials": {
+        "openAiApi": {
+          "id": "uSLEWyqaVgIjtuhw",
+          "name": "n8n free OpenAI API credits"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// 1. Get the first item from the input\nconst item = $input.first().json;\n\n// 2. Access the 'output' array, then the first message [0], then 'content' [0]\nconst aiResponse = item.output[0].content[0].text;\n\n// 3. Turn that text string into actual data\nconst parsed = JSON.parse(aiResponse);\n\n// 4. Send it to the next node\nreturn [{ json: parsed }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        560,
+        0
+      ],
+      "id": "890d37d3-3acc-4e22-a1eb-832221f00984",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "sendTo": "glowframe25@gmail.com",
+        "subject": "=Analysis Report for {{$json.business_name}}",
+        "message": "=<div style=\"font-family: Arial, sans-serif; border: 1px solid #ddd; padding: 20px; border-radius: 10px;\">   <h2 style=\"color: #2a9d8f;\">🚀 AI Business Growth Advisor</h2>   <p>We analyzed the recent feedback for <strong>{{$json.business_name}}</strong>. Here is the strategic breakdown:</p>      <hr>      <h3 style=\"color: #e76f51;\">📉 Critical Complaints</h3>   <ul>     <li>{{$json.customer_complaints.join('</li><li>')}}</li>   </ul>    <h3 style=\"color: #264653;\">💡 The \"Big Idea\" (Marketing)</h3>   <p>{{$json.report.marketing_idea}}</p>    <h3 style=\"color: #f4a261;\">📈 Growth Strategy</h3>   <p>{{$json.report.growth_suggestion}}</p>      <p style=\"font-size: 12px; color: #888; margin-top: 20px;\">Generated automatically by your n8n AI Agent.</p> </div>",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        768,
+        0
+      ],
+      "id": "60c2124c-5b75-4522-a486-e51e7e4a8bad",
+      "name": "Send a message",
+      "webhookId": "28533ac4-4d93-4047-8ad5-4670a8cf2ff9",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "wisD7lnS3NHqiToo",
+          "name": "Gmail OAuth2 API"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Message a model",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Message a model": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "849702e9-85bb-4582-a43d-56c072ac4e51",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "2ef1159b002f35265d1f354d7730d5521ae3357d209721265703a63609483673"
+  },
+  "id": "jXAXeDjYpL7aG8e6",
+  "tags": []
+}
